@@ -2,7 +2,7 @@
 
 A web-based TV show organizer application that uses the TMDB (The Movie Database) API to help you manage and track your favorite TV shows.
 
-![](screenshot/screenshot.png)
+![](https://github.com/xenofrost/themoviedb/blob/main/screenshot.png)
 
 ## Features
 
