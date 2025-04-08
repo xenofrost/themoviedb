@@ -8,6 +8,7 @@ A web-based TV show organizer application that uses the TMDB (The Movie Database
 
 - Search for TV shows using TMDB's extensive database
 - View detailed information about TV shows
+- Renames your TV Shows files from eg. **GOT-S01E01.mkv** to **Game of Thrones - S01E01 - Unaired Original Pilot.mkv**
 - RESTful API endpoints for TV show data
 - Cross-origin resource sharing (CORS) enabled
 - Uses shoelace UI - https://shoelace.style/
