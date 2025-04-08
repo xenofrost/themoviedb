@@ -19,7 +19,7 @@ Before you begin, ensure you have installed:
 
 1. Clone the repository:
 ```bash
-git clone xenofrost/themoviedb
+git clone xenofrost/themoviedb.git
 cd tv-show-organizer
 ```
 
@@ -28,12 +28,15 @@ cd tv-show-organizer
 npm install
 ```
 
-3. Create a `.env` file in the root directory:
+3. Edit a `.env` file in the root directory:
 ```env
 TMDB_API_KEY=your_tmdb_api_key_here
+TMDB_READ_ACCESS_TOKEN=your_tmdb_read_access_token
+TV_SHOWS_BASE_PATH=//PATH/TO/YOUR/TVSHOWS
+PORT=3000
 ```
-
-Replace `your_tmdb_api_key_here` with your actual TMDB API key. You can get one by registering at [TMDB's website](https://www.themoviedb.org/documentation/api).
+Replace `your_tmdb_api_key_here` with your actual TMDB API key. You can get one by registering at [TMDB's website](https://www.themoviedb.org/documentation/api). 
+Replace `your_tmdb_read_access_token` with your actual TMDB read access token. You can get one by registering at [TMDB's website](https://www.themoviedb.org/documentation/api).
 
 ## Usage
 
