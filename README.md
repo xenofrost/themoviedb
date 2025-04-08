@@ -61,7 +61,7 @@ The server will start on the default port (usually 3000 unless specified otherwi
 ## Project Structure
 
 ```
-tv-show-organizer/
+themoviedb/
 ├── node_modules/
 ├── themoviedb.js    # Main application file
 ├── package.json     # Project dependencies and scripts
