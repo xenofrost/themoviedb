@@ -8,6 +8,7 @@ A web-based TV show organizer application that uses the TMDB (The Movie Database
 - View detailed information about TV shows
 - RESTful API endpoints for TV show data
 - Cross-origin resource sharing (CORS) enabled
+- Uses shoelace UI - https://shoelace.style/
 
 ## Prerequisites
 
