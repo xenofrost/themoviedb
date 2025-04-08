@@ -19,7 +19,7 @@ Before you begin, ensure you have installed:
 
 1. Clone the repository:
 ```bash
-git clone <your-repository-url>
+git clone xenofrost/themoviedb
 cd tv-show-organizer
 ```
 
