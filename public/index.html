@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Show Organizer</title>
+
+    <!-- Shoelace CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"></script>
+
+    <!-- Font Awesome for additional icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --sl-color-primary-500: #3498db;
+            --sl-color-success-500: #2ecc71;
+            --sl-color-warning-500: #f39c12;
+            --sl-color-danger-500: #e74c3c;
+            --sl-color-neutral-50: #f8f9fa;
+        }
+
+        body {
+            background-color: var(--sl-color-neutral-50);
+            margin: 0;
+            font-family: var(--sl-font-sans);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .app-header {
+            background-color: var(--sl-color-primary-500);
+            color: white;
+            padding: 1rem;
+            box-shadow: var(--sl-shadow-medium);
+        }
+
+        .app-title {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: var(--sl-font-weight-bold);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .card-max-height {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* For iOS smooth scrolling */
+        }
+
+        .empty-placeholder {
+            padding: 3em 1em;
+            text-align: center;
+            color: var(--sl-color-neutral-500);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-placeholder sl-icon {
+            font-size: 3em;
+            margin-bottom: 0.5em;
+        }
+
+        .folder-list {
+            max-height: 300px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* For iOS smooth scrolling */
+        }
+
+        .show-poster {
+            width: 250px;
+            margin: 0 auto 1em auto;
+        }
+
+        .search-result-card {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        .search-result-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid var(--sl-color-neutral-200);
+            background-color: var(--sl-color-primary-100);
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .card-content {
+            padding: 1rem;
+        }
+
+        .season-item {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--sl-color-neutral-200);
+        }
+
+        .season-item:hover {
+            background-color: var(--sl-color-neutral-100);
+        }
+
+        .episode-badge {
+            float: right;
+        }
+
+        .folder-item {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--sl-color-neutral-200);
+        }
+
+        .folder-item:hover {
+            background-color: var(--sl-color-neutral-100);
+        }
+
+        .folder-item.selected {
+            background-color: var(--sl-color-primary-100);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-text {
+            color: white;
+            margin-top: 1rem;
+            font-size: 1.25rem;
+        }
+
+        /* Custom styling for the search input */
+        #search-input::part(base) {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        #search-button::part(base) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        /* Modern scrollbar styling */
+        .card-max-height,
+        .folder-list {
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: var(--sl-color-primary-300) transparent; /* Firefox */
+        }
+
+        /* WebKit/Blink browsers (Chrome, Safari, Edge) */
+        .card-max-height::-webkit-scrollbar,
+        .folder-list::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .card-max-height::-webkit-scrollbar-track,
+        .folder-list::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 4px;
+        }
+
+        .card-max-height::-webkit-scrollbar-thumb,
+        .folder-list::-webkit-scrollbar-thumb {
+            background-color: var(--sl-color-primary-300);
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .card-max-height::-webkit-scrollbar-thumb:hover,
+        .folder-list::-webkit-scrollbar-thumb:hover {
+            background-color: var(--sl-color-primary-500);
+        }
+
+        /* Hide scrollbar when not in use but keep functionality */
+        .card-max-height:not(:hover)::-webkit-scrollbar-thumb,
+        .folder-list:not(:hover)::-webkit-scrollbar-thumb {
+            background-color: var(--sl-color-primary-200);
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loading">
+        <sl-spinner style="font-size: 3rem;"></sl-spinner>
+        <div class="loading-text" id="loading-text">Loading...</div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="app-header">
+        <div class="main-container">
+            <h1 class="app-title">
+                <sl-icon name="film"></sl-icon> TV Show Organizer
+            </h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="grid-container">
+            <!-- Search and results column -->
+            <sl-card>
+                <div slot="header" class="card-header" style="background-color: var(--sl-color-primary-100);">
+                    <h3>Search Shows</h3>
+                </div>
+
+                <div class="card-content">
+                    <sl-input-group>
+                        <sl-input id="search-input" placeholder="Search for a TV show..." size="medium">
+                            <sl-icon name="tv" slot="prefix"></sl-icon>
+                        </sl-input>
+                        <sl-button slot="suffix" variant="primary" size="medium" id="search-button">Search</sl-button>
+                    </sl-input-group>
+
+                    <sl-divider style="margin: 1rem 0;"></sl-divider>
+
+                    <div id="search-results" class="card-max-height">
+                        <!-- Search results will be displayed here -->
+                        <div class="empty-placeholder">
+                            <sl-icon name="search"></sl-icon>
+                            <p>Search for TV shows to get started</p>
+                        </div>
+                    </div>
+                </div>
+            </sl-card>
+
+            <!-- Show details column -->
+            <sl-card>
+                <div slot="header" class="card-header" style="background-color: var(--sl-color-success-100);">
+                    <h3>Show Details</h3>
+                </div>
+
+                <div class="card-content">
+                    <div id="show-details" class="card-max-height">
+                        <!-- Show details will be displayed here -->
+                        <div class="empty-placeholder">
+                            <sl-icon name="tv"></sl-icon>
+                            <p>Select a show to view details</p>
+                        </div>
+                    </div>
+                </div>
+            </sl-card>
+
+            <!-- Folder selection column -->
+            <div>
+                <sl-card>
+                    <div slot="header" class="card-header" style="background-color: var(--sl-color-warning-100);">
+                        <h3>Folder Selection</h3>
+                    </div>
+
+                    <div class="card-content">
+                        <p>Select the folder containing the TV show you want to rename:</p>
+
+                        <div id="folder-list" class="folder-list">
+                            <!-- Folder list will be displayed here -->
+                            <div class="empty-placeholder">
+                                <sl-icon name="folder"></sl-icon>
+                                <p>Loading folders...</p>
+                            </div>
+                        </div>
+
+                        <div id="process-controls" class="hidden" style="margin-top: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <sl-switch id="confirm-renames">Confirm each rename</sl-switch>
+                                <sl-switch id="download-posters" checked>Download show & episode posters</sl-switch>
+                            </div>
+
+                            <sl-divider style="margin: 1rem 0;"></sl-divider>
+
+                            <sl-button id="process-button" variant="primary" style="width: 100%;">
+                                Process Selected Folder
+                            </sl-button>
+                        </div>
+                    </div>
+                </sl-card>
+
+                <sl-card id="status-card" class="hidden" style="margin-top: 1rem;">
+                    <div slot="header" class="card-header" style="background-color: var(--sl-color-neutral-100);">
+                        <h3>Processing Status</h3>
+                    </div>
+
+                    <div class="card-content">
+                        <div id="status-message">
+                            <!-- Status messages will be displayed here -->
+                        </div>
+                    </div>
+                </sl-card>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Base URL for API requests
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        // TMDB Image URL
+        const TMDB_IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
+
+        // State variables
+        let selectedShow = null;
+        let selectedFolder = null;
+
+        // DOM elements
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const searchResults = document.getElementById('search-results');
+        const showDetails = document.getElementById('show-details');
+        const folderList = document.getElementById('folder-list');
+        const processControls = document.getElementById('process-controls');
+        const processButton = document.getElementById('process-button');
+        const confirmRenames = document.getElementById('confirm-renames');
+        const downloadPosters = document.getElementById('download-posters');
+        const statusCard = document.getElementById('status-card');
+        const statusMessage = document.getElementById('status-message');
+        const loadingElement = document.getElementById('loading');
+        const loadingText = document.getElementById('loading-text');
+
+        // Helper function to show loading overlay
+        function showLoading(message = 'Loading...') {
+            loadingText.textContent = message;
+            loadingElement.classList.remove('hidden');
+        }
+
+        // Helper function to hide loading overlay
+        function hideLoading() {
+            loadingElement.classList.add('hidden');
+        }
+
+        // Helper function to show/hide elements
+        function toggleVisibility(element, show) {
+            if (show) {
+                element.classList.remove('hidden');
+            } else {
+                element.classList.add('hidden');
+            }
+        }
+
+        // Fetch available folders
+        async function fetchFolders() {
+            showLoading('Loading folders...');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/folders`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to fetch folders');
+                }
+
+                renderFolders(data.folders);
+            } catch (error) {
+                folderList.innerHTML = `
+                    <sl-alert variant="danger" open>
+                        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+                        <strong>Error!</strong> ${error.message || 'Failed to connect to server'}
+                    </sl-alert>
+                `;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Render folders list
+        function renderFolders(folders) {
+            if (!folders || folders.length === 0) {
+                folderList.innerHTML = `
+                    <div class="empty-placeholder">
+                        <sl-icon name="folder"></sl-icon>
+                        <p>No folders found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            folderList.innerHTML = folders.map(folder => `
+                <div class="folder-item" data-path="${folder.path}">
+                    <sl-icon name="folder"></sl-icon> ${folder.name}
+                </div>
+            `).join('');
+
+            // Add event listeners to folder items
+            document.querySelectorAll('.folder-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    // Remove selected class from all items
+                    document.querySelectorAll('.folder-item').forEach(i => i.classList.remove('selected'));
+
+                    // Add selected class to clicked item
+                    item.classList.add('selected');
+
+                    // Update selected folder
+                    selectedFolder = item.dataset.path;
+
+                    // Show process controls if both show and folder are selected
+                    toggleVisibility(processControls, selectedShow && selectedFolder);
+                });
+            });
+        }
+
+        // Search for TV shows
+        async function searchShows(query) {
+            showLoading('Searching...');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/search?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to search shows');
+                }
+
+                renderSearchResults(data.shows);
+            } catch (error) {
+                searchResults.innerHTML = `
+                    <sl-alert variant="danger" open>
+                        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+                        <strong>Error!</strong> ${error.message || 'Failed to connect to server'}
+                    </sl-alert>
+                `;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Render search results
+        function renderSearchResults(shows) {
+            if (!shows || shows.length === 0) {
+                searchResults.innerHTML = `
+                    <div class="empty-placeholder">
+                        <sl-icon name="search"></sl-icon>
+                        <p>No shows found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            searchResults.innerHTML = shows.map(show => `
+                <sl-card class="search-result-card">
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="flex-shrink: 0; width: 80px;">
+                            <img src="${show.poster_path ? TMDB_IMAGE_URL + show.poster_path : '/api/placeholder/100/150'}"
+                                alt="${show.name}" style="width: 100%; border-radius: var(--sl-border-radius-medium);">
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <h4 style="margin-top: 0; margin-bottom: 0.25rem;">${show.name}</h4>
+                            <div style="color: var(--sl-color-neutral-500); font-size: 0.875rem; margin-bottom: 0.5rem;">${show.year}</div>
+                            <p style="margin: 0; font-size: 0.875rem;">
+                                ${show.overview ? (show.overview.length > 100 ? show.overview.substring(0, 100) + '...' : show.overview) : 'No overview available'}
+                            </p>
+                        </div>
+                    </div>
+                    <div slot="footer">
+                        <sl-button variant="primary" size="small" class="select-show" data-id="${show.id}">
+                            Select
+                        </sl-button>
+                    </div>
+                </sl-card>
+            `).join('');
+
+            // Add event listeners to select buttons
+            document.querySelectorAll('.select-show').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const showId = button.dataset.id;
+                    await fetchShowDetails(showId);
+                });
+            });
+        }
+
+        // Fetch show details
+        async function fetchShowDetails(showId) {
+            showLoading('Loading show details...');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/show/${showId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to fetch show details');
+                }
+
+                selectedShow = data.show;
+                renderShowDetails(data.show);
+
+                // Show process controls if both show and folder are selected
+                toggleVisibility(processControls, selectedShow && selectedFolder);
+            } catch (error) {
+                showDetails.innerHTML = `
+                    <sl-alert variant="danger" open>
+                        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+                        <strong>Error!</strong> ${error.message || 'Failed to connect to server'}
+                    </sl-alert>
+                `;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Render show details
+        function renderShowDetails(show) {
+            const seasonsList = show.seasons
+                .filter(season => season.season_number > 0)  // Filter out specials
+                .map(season => `
+                    <div class="season-item" data-season="${season.season_number}">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <sl-icon name="folder"></sl-icon>
+                                Season ${season.season_number}
+                            </div>
+                            <sl-badge variant="success">${season.episode_count} episodes</sl-badge>
+                        </div>
+                    </div>
+                `)
+                .join('');
+
+            showDetails.innerHTML = `
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <img src="${show.poster_path ? TMDB_IMAGE_URL + show.poster_path : '/api/placeholder/250/375'}"
+                        class="show-poster" style="border-radius: var(--sl-border-radius-medium);" alt="${show.name}">
+                </div>
+                <h3 style="margin-top: 0; margin-bottom: 0.25rem;">${show.name}</h3>
+                <div style="color: var(--sl-color-neutral-500); margin-bottom: 1rem;">${show.year}</div>
+                <p>${show.overview || 'No overview available'}</p>
+                <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--sl-color-neutral-200);">Seasons</h4>
+                <div>
+                    ${seasonsList}
+                </div>
+            `;
+
+            // Add event listeners to season items
+            document.querySelectorAll('.season-item').forEach(item => {
+                item.addEventListener('click', async () => {
+                    const seasonNumber = item.dataset.season;
+                    showLoading(`Loading season ${seasonNumber} details...`);
+
+                    try {
+                        const isExpanded = item.classList.contains('active');
+
+                        if (isExpanded) {
+                            // If already expanded, collapse
+                            item.classList.remove('active');
+                            const detailsElement = document.getElementById(`season-${seasonNumber}-details`);
+                            if (detailsElement) {
+                                detailsElement.remove();
+                            }
+                        } else {
+                            // If not expanded, expand and show episodes
+                            item.classList.add('active');
+
+                            const response = await fetch(`${API_BASE_URL}/show/${show.id}/season/${seasonNumber}`);
+                            const data = await response.json();
+
+                            if (!data.success) {
+                                throw new Error(data.error || 'Failed to fetch season details');
+                            }
+
+                            const episodesList = data.season.episodes.map(episode => `
+                                <div style="padding: 0.5rem; border-bottom: 1px solid var(--sl-color-neutral-200);">
+                                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                                        <div>
+                                            <strong>E${episode.episode_number.toString().padStart(2, '0')}</strong>:
+                                            ${episode.name}
+                                        </div>
+                                        <sl-badge variant="primary">${episode.runtime || '-'} min</sl-badge>
+                                    </div>
+                                </div>
+                            `).join('');
+
+                            const detailsElement = document.createElement('div');
+                            detailsElement.id = `season-${seasonNumber}-details`;
+                            detailsElement.style.marginLeft = '1.5rem';
+                            detailsElement.style.marginTop = '0.5rem';
+                            detailsElement.style.marginBottom = '0.5rem';
+                            detailsElement.style.borderLeft = '2px solid var(--sl-color-neutral-200)';
+                            detailsElement.style.paddingLeft = '0.5rem';
+                            detailsElement.innerHTML = episodesList;
+
+                            item.after(detailsElement);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching season details:', error);
+                        item.innerHTML += `
+                            <sl-alert variant="danger" open>
+                                <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+                                <strong>Error!</strong> ${error.message || 'Failed to fetch season details'}
+                            </sl-alert>
+                        `;
+                    } finally {
+                        hideLoading();
+                    }
+                });
+            });
+        }
+
+        // Process selected folder
+        async function processFolder() {
+            if (!selectedShow || !selectedFolder) {
+                statusMessage.innerHTML = `
+                    <sl-alert variant="warning" open>
+                        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+                        Please select both a show and a folder to process.
+                    </sl-alert>
+                `;
+                toggleVisibility(statusCard, true);
+                return;
+            }
+
+            showLoading('Processing folder...');
+            toggleVisibility(statusCard, true);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/process`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        folderPath: selectedFolder,
+                        showId: selectedShow.id,
+                        confirmRenames: confirmRenames.checked,
+                        downloadPosters: downloadPosters.checked
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to process folder');
+                }
+
+                statusMessage.innerHTML = `
+                    <sl-alert variant="success" open>
+                        <sl-icon slot="icon" name="check-circle"></sl-icon>
+                        <strong>Success!</strong> Processing started for "${data.showName}".
+                        <br><br>
+                        <ul style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                            <li>Confirm renames: ${confirmRenames.checked ? 'Yes' : 'No'}</li>
+                            <li>Download posters: ${downloadPosters.checked ? 'Yes' : 'No'}</li>
+                        </ul>
+                        <br>
+                        The server will now process the files in the background. This may take a few minutes depending on the number of files.
+                    </sl-alert>
+                `;
+            } catch (error) {
+                statusMessage.innerHTML = `
+                    <sl-alert variant="danger" open>
+                        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+                        <strong>Error!</strong> ${error.message || 'Failed to connect to server'}
+                    </sl-alert>
+                `;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Event listeners
+        searchButton.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            if (query) {
+                searchShows(query);
+            }
+        });
+
+        searchInput.addEventListener('sl-keypress', (e) => {
+            if (e.detail.key === 'Enter') {
+                const query = searchInput.value.trim();
+                if (query) {
+                    searchShows(query);
+                }
+            }
+        });
+
+        processButton.addEventListener('click', processFolder);
+
+        // Smooth scrolling helper function
+        function smoothScrollIntoView(element, container) {
+            if (!element || !container) return;
+
+            const elementRect = element.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+
+            // Check if element is not fully visible
+            if (elementRect.bottom > containerRect.bottom || elementRect.top < containerRect.top) {
+                // Calculate the scroll position to center the element
+                const scrollTop = element.offsetTop - container.offsetTop - (container.clientHeight / 2) + (element.clientHeight / 2);
+
+                // Scroll smoothly
+                container.scrollTo({
+                    top: scrollTop,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchFolders();
+
+            // Add event delegation for smooth scrolling in lists
+            document.addEventListener('click', (e) => {
+                // For season items
+                if (e.target.closest('.season-item')) {
+                    const item = e.target.closest('.season-item');
+                    const container = document.getElementById('show-details');
+                    setTimeout(() => smoothScrollIntoView(item, container), 100);
+                }
+
+                // For folder items
+                if (e.target.closest('.folder-item')) {
+                    const item = e.target.closest('.folder-item');
+                    const container = document.getElementById('folder-list');
+                    smoothScrollIntoView(item, container);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
