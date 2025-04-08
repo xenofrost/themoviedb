@@ -19,8 +19,8 @@ Before you begin, ensure you have installed:
 
 1. Clone the repository:
 ```bash
-git clone xenofrost/themoviedb.git
-cd tv-show-organizer
+git clone https://github.com/xenofrost/themoviedb.git
+cd themoviedb
 ```
 
 2. Install dependencies:
