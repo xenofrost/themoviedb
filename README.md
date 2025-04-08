@@ -65,7 +65,7 @@ themoviedb/
 ├── node_modules/
 ├── themoviedb.js    # Main application file
 ├── package.json     # Project dependencies and scripts
-├── .env            # Environment variables (not in repo)
+├── .env            # Environment variables
 └── README.md       # Project documentation
 ```
 
